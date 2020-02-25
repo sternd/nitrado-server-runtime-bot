@@ -1,0 +1,4 @@
+discord.py
+requests
+python-dotenv
+git+git@github.com:sternd/python-modules.git@v1.0.0#egg=python-modules
