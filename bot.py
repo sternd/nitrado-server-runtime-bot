@@ -155,6 +155,5 @@ def getColorByRuntimes(gameserver_runtimes):
 
 
 # FOR TESTING
-handler(None, None)
+# handler(None, None)
 # handler('initial-connection', None)
-# handler('slow-mode', None)
