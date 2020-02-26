@@ -14,12 +14,12 @@ class DiscordRequests:
     BOT_CLIENT_ID = None
 
     def __init__(self, config):
-        if 'auth_token' not in config or config['token'] is None:
+        if 'auth_token' not in config or config['auth_token'] is None:
             raise Exception('Missing Discord Token')
         elif 'bot_client_id' not in config or config['bot_client_id'] is None:
             raise Exception('Missing Bot Client ID')
 
-        self.TOKEN = config['token']
+        self.TOKEN = config['auth_token']
         self.BOT_CLIENT_ID = config['bot_client_id']
 
     # Send a Discord API request
