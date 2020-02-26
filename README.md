@@ -34,7 +34,8 @@ zip -r9 ${OLDPWD}/nitrado-server-runtime-bot.zip .
 cd ..
 zip -g nitrado-server-runtime-bot.zip bot.py
 zip -g nitrado-server-runtime-bot.zip nitrapi_account_config.json
-zip -g nitrado-server-runtime-bot.zip gameserver_colors.json
+zip -g nitrado-server-runtime-bot.zip DiscordRequests.py
+zip -g nitrado-server-runtime-bot.zip NitradoRequests.py
 aws lambda update-function-code --function-name nitrado-server-runtime-bot --zip-file fileb://nitrado-server-runtime-bot.zip
 ```
 
