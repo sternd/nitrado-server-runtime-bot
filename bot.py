@@ -16,7 +16,8 @@ CHANNEL_ID = os.getenv('DISCORD_CHANNEL_ID')
 
 # Handler for AWS Lambda to run the application
 def handler(event, context):
-    discord_requests = DiscordRequests({"token": TOKEN, "bot_client_id": BOT_CLIENT_ID})
+    discord_requests = DiscordRequests({"auth_token": TOKEN, "bot_client_id": BOT_CLIENT_ID})
+    nitrado_requests = NitradoRequests()
 
     if event == "initial-connection":
         discord_requests.intialConnection()
@@ -27,22 +28,25 @@ def handler(event, context):
     with open('nitrapi_account_config.json') as json_file:
         nitrapi_account_config = json.load(json_file)
 
-    with open('gameserver_colors.json') as json_file:
-        gameserver_colors = json.load(json_file)
-
     nitrapi_config = json.loads(nitrapi_account_config)
 
     gameserver_runtimes = {}
     for account in nitrapi_config['nitrado_accounts']:
         auth_token = account["auth_token"]
 
-        services = NitradoRequests.getServices(auth_token)
+        services = nitrado_requests.getServices(auth_token)
 
-        gameserver_runtimes.update(parseRuntimeForServices(services, account["gameservers"]))
+        if "data" not in services:
+            continue
+
+        if "services" not in services["data"]:
+            continue
+
+        gameserver_runtimes.update(parseRuntimeForServices(services["data"]["services"], account["gameservers"]))
+
+    colour = getColorByRuntimes(gameserver_runtimes)
 
     embed = createEmbed(gameserver_runtimes)
-
-    colour = discord.Colour(0x7ed321)
 
     embed.__setattr__('timestamp', datetime.utcnow())
     embed.__setattr__('colour', colour)
@@ -68,11 +72,16 @@ def parseRuntimeForServices(services, gameservers):
     gameserver_runtimes = {}
     for service in services:
         gameserver_name = ""
+        boost_code = ""
+        role_id = ""
+
         for gameserver in gameservers:
-            if service["id"] == gameserver["gameserver_id"]:
+            if service["id"] == int(gameserver["gameserver_id"]):
                 if not gameserver["enabled"]:
                     break
                 gameserver_name = gameserver["gameserver_name"]
+                boost_code = gameserver["boost_code"]
+                role_id = gameserver["role_id"]
 
         if gameserver_name == "":
             continue
@@ -82,7 +91,8 @@ def parseRuntimeForServices(services, gameservers):
 
         gameserver_runtimes[gameserver_name] = {
             "runtime": service["suspending_in"],
-            "boost_code": gameserver["boost_code"]
+            "boost_code": boost_code,
+            "role_id": role_id
         }
 
     return gameserver_runtimes
@@ -90,9 +100,9 @@ def parseRuntimeForServices(services, gameservers):
 
 def createEmbed(gameserver_runtimes):
 
-    embed = discord.Embed(title="Valkyrie Server Runtimes", colour=discord.Colour(0xf8e71c),
+    embed = discord.Embed(title="Valkyrie Server Runtimes",
                           url="https://github.com/sternd/nitrado-server-runtime-bot",
-                          description="A visualization of the remaining server runtimes. This channel will be updated daily.")
+                          description="As we don’t require any payment system to play on the Valkyrie cluster it is still an expensive venture to keep the cluster up and running. Any donations are greatly appreciated! All boosts can be done through the Nitrado app on your Xbox and PC. \n**This channel will be updated daily.**")
 
     server_icon = os.getenv('SERVER_ICON')
 
@@ -102,14 +112,14 @@ def createEmbed(gameserver_runtimes):
                      icon_url=server_icon)
 
     for key in gameserver_runtimes:
-        embed = addGameserverRuntimeToEmbed(embed, key, gameserver_runtimes[key]['runtime'], gameserver_runtimes[key]['boost_code'])
+        embed = addGameserverRuntimeToEmbed(embed, key, gameserver_runtimes[key]['runtime'], gameserver_runtimes[key]['boost_code'], gameserver_runtimes[key]["role_id"])
 
     return embed
 
 
-def addGameserverRuntimeToEmbed(embed, server_name, runtime, boost_code):
-    formatted_message = 'Remaining Time: ' + convertSecondsToDays(runtime) + "\n" + f'Boost Code: {boost_code}'
-    embed.add_field(name='**' + server_name + '**', value=formatted_message, inline=True)
+def addGameserverRuntimeToEmbed(embed, server_name, runtime, boost_code, role_id):
+    formatted_message = 'Remaining Time: **' + convertSecondsToDays(runtime) + "**\n" + f'Boost Code: **{boost_code}**'
+    embed.add_field(name='\u200b', value=f'<@&{role_id}>\n' + formatted_message, inline=False)
     return embed
 
 def convertSecondsToDays(seconds):
@@ -122,7 +132,29 @@ def convertSecondsToDays(seconds):
 
     return f'{days_boosted} {day_text}'
 
+
+def getColorByRuntimes(gameserver_runtimes):
+    lowest_runtime = None
+
+    for key in gameserver_runtimes:
+        if lowest_runtime is None:
+            lowest_runtime = gameserver_runtimes[key]["runtime"]
+        elif gameserver_runtimes[key]["runtime"] < lowest_runtime:
+            lowest_runtime = gameserver_runtimes[key]["runtime"]
+
+    color = None
+
+    if lowest_runtime is None or lowest_runtime < 5:
+        color = discord.Colour(0xd0021b)
+    elif lowest_runtime < 15:
+        color = discord.Color(0xf5a623)
+    else:
+        color = discord.Color(0x7ed321)
+
+    return color
+
+
 # FOR TESTING
-# handler(None, None)
+handler(None, None)
 # handler('initial-connection', None)
 # handler('slow-mode', None)
