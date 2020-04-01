@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 import json
 from datetime import datetime
 from DiscordRequests import DiscordRequests
-from NitradeoRequests import NitradoRequests
+from NitradoRequests import NitradoRequests
 
 load_dotenv()
 
