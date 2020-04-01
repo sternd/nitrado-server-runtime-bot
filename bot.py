@@ -121,9 +121,9 @@ def addGameserverRuntimeToEmbed(embed, server_name, runtime, boost_code, role_id
     formatted_message = 'Remaining Time: **' + convertSecondsToDays(runtime) + "**\n" + f'Boost Code: **{boost_code}**'
 
     if role_id == "":
-        gameserver_identifier = f'<@&{role_id}>\n'
-    else:
         gameserver_identifier = f'{server_name}\n'
+    else:
+        gameserver_identifier = f'<@&{role_id}>\n'
 
     embed.add_field(name='\u200b', value=f'{gameserver_identifier}' + formatted_message, inline=False)
     return embed
