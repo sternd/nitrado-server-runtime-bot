@@ -100,9 +100,9 @@ def parseRuntimeForServices(services, gameservers):
 
 def createEmbed(gameserver_runtimes):
 
-    embed = discord.Embed(title="Valkyrie Server Runtimes",
+    embed = discord.Embed(title="Aftermath Server Runtimes",
                           url="https://github.com/sternd/nitrado-server-runtime-bot",
-                          description="As we don’t require any payment system to play on the Valkyrie cluster it is still an expensive venture to keep the cluster up and running. Any donations are greatly appreciated! All boosts can be done through the Nitrado app on your Xbox and PC. \n**This channel will be updated daily.**")
+                          description="As we don’t require any payment system to play on the Aftermath cluster it is still an expensive venture to keep the cluster up and running. Any donations are greatly appreciated! All boosts can be done through the Nitrado app on your Xbox and PC. \n**This channel will be updated daily.**")
 
     server_icon = os.getenv('SERVER_ICON')
 
@@ -119,7 +119,13 @@ def createEmbed(gameserver_runtimes):
 
 def addGameserverRuntimeToEmbed(embed, server_name, runtime, boost_code, role_id):
     formatted_message = 'Remaining Time: **' + convertSecondsToDays(runtime) + "**\n" + f'Boost Code: **{boost_code}**'
-    embed.add_field(name='\u200b', value=f'<@&{role_id}>\n' + formatted_message, inline=False)
+
+    if role_id == "":
+        gameserver_identifier = f'<@&{role_id}>\n'
+    else:
+        gameserver_identifier = f'{server_name}\n'
+
+    embed.add_field(name='\u200b', value=f'{gameserver_identifier}' + formatted_message, inline=False)
     return embed
 
 def convertSecondsToDays(seconds):
